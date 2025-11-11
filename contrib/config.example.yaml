@@ -1,0 +1,5 @@
+targets:
+  - name: test
+    path: $HOME/test
+    backup_path: $HOME/backups/test
+    interval: 15
