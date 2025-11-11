@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ramifier"
+version = "0.1.0"
+description = "RAM-accelerated directory manager with automatic backups"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "GPL-3.0-or-later"
+dependencies = [
+    "pyyaml",
+    "psutil",
+    "pyxdg",
+    "zstandard"
+]
+
+[project.scripts]
+ramifier = "ramifier.__main__:main"

@@ -12,16 +12,11 @@ from .target import Target
 from .utils import current_timestamp, ensure_dir
 
 
-def has_changes(target: Target, current_mtime: float) -> bool:
-    last_mtime = STATE["targets"].get(target.name, {}).get("mtime", 0.0)
-    return current_mtime > last_mtime
-
-
 def backup_target(target: Target, force: bool = False):
     current_mtime = max(
         (p.stat().st_mtime for p in target.path.rglob("*") if p.is_file()), default=0.0
     )
-    if not force and not has_changes(target, current_mtime):
+    if not force and not _has_changes(target, current_mtime):
         log_info("Nothing to backup", target.name)
         return
     backup_file = target.backup_path / f"{target.name}-{current_timestamp()}.tar.zst"
@@ -52,6 +47,11 @@ def restore_target(target: Target, from_backup: bool = False):
                 target.path.unlink()
         shutil.move(ram_path, target.path)
         log_info("Restored from RAM", target.name)
+
+
+def _has_changes(target: Target, current_mtime: float) -> bool:
+    last_mtime = STATE["targets"].get(target.name, {}).get("mtime", 0.0)
+    return current_mtime > last_mtime
 
 
 def _compress_target(target: Target, backup_file: Path):
