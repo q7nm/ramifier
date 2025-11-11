@@ -2,6 +2,7 @@ import signal
 from threading import Event, Thread
 
 from .backup import backup_target, restore_target
+from .log import log_info, log_warning
 from .runtime import create_symlink, get_ram_dir
 from .state import STATE, mark_clean_exit, mark_running, mark_start
 from .target import Target
@@ -15,8 +16,8 @@ def daemon(target: Target, stop_event: Event):
     if running and target_state.get("last_backup") is not None:
         try:
             restore_target(target, True)
-        except FileNotFoundError as e:
-            print(e)
+        except FileNotFoundError:
+            log_warning("Backup file not found", target.name)
             return
     else:
         backup_target(target, True)
@@ -35,7 +36,8 @@ def daemon(target: Target, stop_event: Event):
     mark_clean_exit(target)
 
 
-def start_daemon(target: Target, stop_event: Event):
+def start_daemon(target: Target, stop_event: Event) -> Thread:
     thread = Thread(target=daemon, args=(target, stop_event))
     thread.start()
+    log_info("Daemon started")
     return thread

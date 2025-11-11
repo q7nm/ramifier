@@ -19,6 +19,17 @@ def is_tmpfs(path: Path) -> bool:
     return False
 
 
+def get_ram_dir() -> Path:
+    shm = Path("/dev/shm")
+    tmp = Path("/tmp")
+    if is_tmpfs(shm):
+        ram_dir = shm / "ramifier"
+    else:
+        ram_dir = tmp / "ramifier"
+    ensure_dir(ram_dir, 0o700)
+    return ram_dir
+
+
 def ensure_dir(path: Path, mode: int = None):
     if mode is not None:
         path.mkdir(parents=True, exist_ok=True, mode=mode)

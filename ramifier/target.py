@@ -3,7 +3,7 @@ from pathlib import Path
 
 from xdg import BaseDirectory
 
-from .utils import ensure_dir
+from .utils import ensure_dir, get_ram_dir
 
 
 class Target:
@@ -18,6 +18,6 @@ class Target:
 
         if not self.path.exists():
             raise FileNotFoundError(f"Target path does not exist: {self.path}")
-#        if not self.path.is_dir() and not self.path.resolve() == get_ram_dir() / self.name:
-#            raise NotADirectoryError(f"{self.path} is not a directory")
+        if not self.path.is_dir() and not self.path.resolve() == get_ram_dir() / self.name:
+            raise NotADirectoryError(f"{self.path} is not a directory")
         ensure_dir(self.backup_path)

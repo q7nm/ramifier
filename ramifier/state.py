@@ -1,15 +1,16 @@
 import json
-import threading
 from pathlib import Path
+from threading import Lock
 
 from xdg import BaseDirectory
 
+from .log import log_info
 from .target import Target
 from .utils import ensure_dir
 
 STATE_PATH = Path(BaseDirectory.xdg_state_home) / "ramifier"
 STATE_FILE = STATE_PATH / "state.json"
-STATE_LOCK = threading.Lock()
+STATE_LOCK = Lock()
 
 STATE = {"targets": {}}
 
@@ -59,4 +60,5 @@ def mark_mtime(target: Target, mtime: float):
 
 def mark_clean_exit(target: Target):
     STATE["targets"].setdefault(target.name, {})["running"] = False
+    log_info("Exited cleanly", target.name)
     save_state()

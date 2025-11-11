@@ -5,6 +5,7 @@ from pathlib import Path
 import zstandard as zstd
 from xdg import BaseDirectory
 
+from .log import log_info
 from .runtime import get_ram_dir
 from .state import STATE, mark_backup, mark_mtime
 from .target import Target
@@ -21,6 +22,7 @@ def backup_target(target: Target, force: bool = False):
         (p.stat().st_mtime for p in target.path.rglob("*") if p.is_file()), default=0.0
     )
     if not force and not has_changes(target, current_mtime):
+        log_info("Nothing to backup", target.name)
         return
     backup_file = target.backup_path / f"{target.name}-{current_timestamp()}.tar.zst"
     _compress_target(target, backup_file)
@@ -49,6 +51,7 @@ def restore_target(target: Target, from_backup: bool = False):
             else:
                 target.path.unlink()
         shutil.move(ram_path, target.path)
+        log_info("Restored from RAM", target.name)
 
 
 def _compress_target(target: Target, backup_file: Path):
@@ -57,6 +60,7 @@ def _compress_target(target: Target, backup_file: Path):
         with cctx.stream_writer(f_out) as compressor:
             with tarfile.open(fileobj=compressor, mode="w|") as tar:
                 tar.add(target.path.resolve(), arcname=".")
+    log_info(f"Backed up at {backup_file}", target.name)
 
 
 def _decompress_target(target: Target, backup_file: Path):
@@ -68,3 +72,4 @@ def _decompress_target(target: Target, backup_file: Path):
         with dctx.stream_reader(f_in) as decompressor:
             with tarfile.open(fileobj=decompressor, mode="r|") as tar:
                 tar.extractall(target.path)
+    log_info(f"Restored from {backup_file}", target.name)

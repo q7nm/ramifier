@@ -3,6 +3,7 @@ from pathlib import Path
 import yaml
 from xdg import BaseDirectory
 
+from .log import log_info
 from .target import Target
 
 
@@ -23,4 +24,5 @@ def load_config() -> list[Target]:
             interval=t.get("interval", 30),
         )
         targets.append(target)
+        log_info("Target added", target.name)
     return targets
