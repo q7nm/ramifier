@@ -7,7 +7,7 @@ from .utils import ensure_dir, get_ram_dir
 
 
 class Target:
-    def __init__(self, name: str, path: str, backup_path: str, interval: int):
+    def __init__(self, name: str, path: str, backup_path: str, interval: int, dynamic_interval: bool, max_dynamic_interval: int):
         self.name = name
         self.path = Path(os.path.expandvars(path)).expanduser()
         if backup_path is None:
@@ -15,6 +15,8 @@ class Target:
         else:
             self.backup_path = Path(os.path.expandvars(backup_path)).expanduser()
         self.interval = interval
+        self.dynamic_interval = dynamic_interval
+        self.max_dynamic_interval = max_dynamic_interval
 
         if not self.path.exists():
             raise FileNotFoundError(f"Target path does not exist: {self.path}")

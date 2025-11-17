@@ -22,6 +22,8 @@ def load_config() -> list[Target]:
             path=t["path"],
             backup_path=t.get("backup_path"),
             interval=t.get("interval", 30),
+            dynamic_interval=t.get("dynamic_interval", False),
+            max_dynamic_interval=t.get("max_dynamic_interval", 100)
         )
         targets.append(target)
         log_info("Target added", target.name)

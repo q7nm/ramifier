@@ -18,6 +18,7 @@ def backup_target(target: Target, force: bool = False):
     )
     if not force and not _has_changes(target, current_mtime):
         log_info("Nothing to backup", target.name)
+        mark_mtime(target, current_mtime)
         return
     backup_file = target.backup_path / f"{target.name}-{current_timestamp()}.tar.zst"
     _compress_target(target, backup_file)
@@ -50,7 +51,7 @@ def restore_target(target: Target, from_backup: bool = False):
 
 
 def _has_changes(target: Target, current_mtime: float) -> bool:
-    last_mtime = STATE["targets"].get(target.name, {}).get("mtime", 0.0)
+    last_mtime = (STATE["targets"].get(target.name, {}).get("mtime_history") or [0.0])[-1]
     return current_mtime > last_mtime
 
 
