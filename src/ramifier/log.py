@@ -11,13 +11,13 @@ if not logger.hasHandlers():
     logger.addHandler(handler)
 
 
-def log_info(message: str, prefix: str ="ramifier"):
+def log_info(message: str, prefix: str = "ramifier"):
     logger.info(message, extra={"prefix": prefix})
 
 
-def log_warning(message: str, prefix: str ="ramifier"):
+def log_warning(message: str, prefix: str = "ramifier"):
     logger.warning(message, extra={"prefix": prefix})
 
 
-def log_error(message: str, prefix: str ="ramifier"):
+def log_error(message: str, prefix: str = "ramifier"):
     logger.error(message, extra={"prefix": prefix})

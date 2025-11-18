@@ -26,7 +26,7 @@ def load_config() -> list[Target]:
             dynamic_interval=t.get("dynamic_interval", False),
             max_dynamic_interval=t.get("max_dynamic_interval", 100),
             compression_level=t.get("compression_level", 3),
-            compression_threads=t.get("compression_threads", 0)
+            compression_threads=t.get("compression_threads", 0),
         )
         targets.append(target)
         log_info("Target added", target.name)

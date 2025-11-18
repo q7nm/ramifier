@@ -52,12 +52,16 @@ def restore_target(target: Target, from_backup: bool = False):
 
 
 def _has_changes(target: Target, current_mtime: float) -> bool:
-    last_mtime = (STATE["targets"].get(target.name, {}).get("mtime_history") or [0.0])[-1]
+    last_mtime = (STATE["targets"].get(target.name, {}).get("mtime_history") or [0.0])[
+        -1
+    ]
     return current_mtime > last_mtime
 
 
 def _compress_target(target: Target, backup_file: Path):
-    cctx = zstd.ZstdCompressor(level=target.compression_level, threads=target.compression_threads)
+    cctx = zstd.ZstdCompressor(
+        level=target.compression_level, threads=target.compression_threads
+    )
     with open(backup_file, "wb") as f_out:
         with cctx.stream_writer(f_out) as compressor:
             with tarfile.open(fileobj=compressor, mode="w|") as tar:
@@ -78,10 +82,13 @@ def _decompress_target(target: Target, backup_file: Path):
 
 
 def _cleanup_old_backups(target: Target):
-    backups = sorted(target.backup_path.glob(f"{target.name}-*.tar.zst"), key=lambda p: p.stat().st_mtime)
+    backups = sorted(
+        target.backup_path.glob(f"{target.name}-*.tar.zst"),
+        key=lambda p: p.stat().st_mtime,
+    )
     last_backup_file = STATE["targets"].get(target.name, {}).get("last_backup")
 
-    for backup in backups[:-target.max_backups]:
+    for backup in backups[: -target.max_backups]:
         try:
             if last_backup_file is None or backup != Path(last_backup_file):
                 backup.unlink(missing_ok=True)

@@ -35,7 +35,10 @@ def daemon(target: Target, stop_event: Event):
             interval = target.interval
         final_interval = max(5, int(interval))
         if final_interval != interval:
-            log_warning(f"Interval forced to {final_interval} minutes (was {interval})", target.name)
+            log_warning(
+                f"Interval forced to {final_interval} minutes (was {interval})",
+                target.name,
+            )
         stop_event.wait(final_interval * 60)
         backup_target(target)
 

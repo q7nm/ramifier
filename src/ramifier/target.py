@@ -17,7 +17,7 @@ class Target:
         dynamic_interval: bool,
         max_dynamic_interval: int,
         compression_level: int,
-        compression_threads: int
+        compression_threads: int,
     ):
         self.name = name
         self.path = Path(os.path.expandvars(path)).expanduser()
