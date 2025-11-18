@@ -57,7 +57,7 @@ def _has_changes(target: Target, current_mtime: float) -> bool:
 
 
 def _compress_target(target: Target, backup_file: Path):
-    cctx = zstd.ZstdCompressor(level=3, threads=0)
+    cctx = zstd.ZstdCompressor(level=target.compression_level, threads=target.compression_threads)
     with open(backup_file, "wb") as f_out:
         with cctx.stream_writer(f_out) as compressor:
             with tarfile.open(fileobj=compressor, mode="w|") as tar:

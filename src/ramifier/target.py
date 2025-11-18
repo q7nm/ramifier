@@ -16,6 +16,8 @@ class Target:
         interval: int,
         dynamic_interval: bool,
         max_dynamic_interval: int,
+        compression_level: int,
+        compression_threads: int
     ):
         self.name = name
         self.path = Path(os.path.expandvars(path)).expanduser()
@@ -27,6 +29,8 @@ class Target:
         self.interval = interval
         self.dynamic_interval = dynamic_interval
         self.max_dynamic_interval = max_dynamic_interval
+        self.compression_level = compression_level
+        self.compression_threads = compression_threads
 
         if not self.path.exists():
             raise FileNotFoundError(f"Target path does not exist: {self.path}")
