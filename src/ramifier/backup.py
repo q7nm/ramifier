@@ -24,6 +24,7 @@ def backup_target(target: Target, force: bool = False):
     _compress_target(target, backup_file)
     mark_backup(target, backup_file)
     mark_mtime(target, current_mtime)
+    _cleanup_old_backups(target)
 
 
 def restore_target(target: Target, from_backup: bool = False):
@@ -74,3 +75,16 @@ def _decompress_target(target: Target, backup_file: Path):
             with tarfile.open(fileobj=decompressor, mode="r|") as tar:
                 tar.extractall(target.path)
     log_info(f"Restored from {backup_file}", target.name)
+
+
+def _cleanup_old_backups(target: Target):
+    backups = sorted(target.backup_path.glob(f"{target.name}-*.tar.zst"), key=lambda p: p.stat().st_mtime)
+    last_backup_file = STATE["targets"].get(target.name, {}).get("last_backup")
+
+    for backup in backups[:-target.max_backups]:
+        try:
+            if last_backup_file is None or backup != Path(last_backup_file):
+                backup.unlink(missing_ok=True)
+                log_info(f"Deleted old backup: {backup}", target.name)
+        except Exception:
+            log_warning(f"Failed to delete {backup}", target.name)

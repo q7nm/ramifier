@@ -21,6 +21,7 @@ def load_config() -> list[Target]:
             name=t["name"],
             path=t["path"],
             backup_path=t.get("backup_path"),
+            max_backups=t.get("max_backups", 3),
             interval=t.get("interval", 30),
             dynamic_interval=t.get("dynamic_interval", False),
             max_dynamic_interval=t.get("max_dynamic_interval", 100)
