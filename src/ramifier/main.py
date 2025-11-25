@@ -1,13 +1,17 @@
 import signal
 from threading import Event
 
+from . import __version__
 from .config import load_config
 from .daemon import start_daemon
 from .lock import acquire_lock, release_lock
+from .log import log_info
 from .state import load_state
 
 
 def main():
+    log_info(f"Version: {__version__}")
+
     acquire_lock()
     targets = load_config()
     load_state()
