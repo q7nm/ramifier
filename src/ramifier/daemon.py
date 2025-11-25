@@ -5,7 +5,13 @@ from .backup import backup_target, restore_target
 from .dynamic_interval import dynamic_interval
 from .log import log_info, log_warning
 from .runtime import create_symlink, get_ram_dir
-from .state import get_running, mark_clean_exit, mark_running, mark_start
+from .state import (
+    get_last_backup,
+    get_running,
+    mark_clean_exit,
+    mark_running,
+    mark_start,
+)
 from .target import Target
 
 
@@ -13,7 +19,8 @@ def daemon(target: Target, stop_event: Event):
     mark_start(target)
 
     running = get_running(target)
-    if running and target_state.get("last_backup") is not None:
+    last_backup = get_last_backup(target)
+    if running and last_backup is not None:
         try:
             restore_target(target, True)
         except FileNotFoundError:
