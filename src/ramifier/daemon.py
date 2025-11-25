@@ -49,5 +49,5 @@ def daemon(target: Target, stop_event: Event):
 def start_daemon(target: Target, stop_event: Event) -> Thread:
     thread = Thread(target=daemon, args=(target, stop_event))
     thread.start()
-    log_info("Daemon started")
+    log_info("Daemon started", target.name)
     return thread
