@@ -7,7 +7,7 @@ from xdg import BaseDirectory
 
 from .log import log_info
 from .runtime import get_ram_dir
-from .state import STATE, mark_backup, mark_mtime
+from .state import get_last_backup, get_mtime_history, mark_backup, mark_mtime
 from .target import Target
 from .utils import current_timestamp, ensure_dir
 
@@ -29,7 +29,7 @@ def backup_target(target: Target, force: bool = False):
 
 def restore_target(target: Target, from_backup: bool = False):
     if from_backup:
-        backup_file = Path(STATE["targets"].get(target.name, {}).get("last_backup"))
+        backup_file = Path(get_last_backup(target))
         if not backup_file.exists():
             raise FileNotFoundError(f"No backup found for target {target.name}")
         if target.path.exists() or target.path.is_symlink():
@@ -52,9 +52,7 @@ def restore_target(target: Target, from_backup: bool = False):
 
 
 def _has_changes(target: Target, current_mtime: float) -> bool:
-    last_mtime = (STATE["targets"].get(target.name, {}).get("mtime_history") or [0.0])[
-        -1
-    ]
+    last_mtime = (get_mtime_history(target) or [0.0])[-1]
     return current_mtime > last_mtime
 
 
@@ -86,7 +84,7 @@ def _cleanup_old_backups(target: Target):
         target.backup_path.glob(f"{target.name}-*.tar.zst"),
         key=lambda p: p.stat().st_mtime,
     )
-    last_backup_file = STATE["targets"].get(target.name, {}).get("last_backup")
+    last_backup_file = get_last_backup(target)
 
     for backup in backups[: -target.max_backups]:
         try:

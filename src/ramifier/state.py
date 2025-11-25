@@ -77,3 +77,15 @@ def mark_clean_exit(target: Target):
     STATE["targets"].setdefault(target.name, {})["running"] = False
     log_info("Exited cleanly", target.name)
     save_state()
+
+
+def get_last_backup(target: Target) -> str:
+    return STATE["targets"].get(target.name, {}).get("last_backup")
+
+
+def get_mtime_history(target: Target) -> deque:
+    return STATE["targets"].get(target.name, {}).get("mtime_history", deque(maxlen=5))
+
+
+def get_running(target: Target) -> bool:
+    return STATE["targets"].get(target.name, {}).get("running")

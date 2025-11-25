@@ -1,10 +1,10 @@
 from .log import log_info
-from .state import STATE
+from .state import get_mtime_history
 from .target import Target
 
 
 def dynamic_interval(target: Target) -> int:
-    mtime_history = STATE["targets"].get(target.name, {}).get("mtime_history", [])
+    mtime_history = get_mtime_history(target)
     unique_count = len(set(mtime_history))
     interval = (
         target.max_dynamic_interval // unique_count if unique_count else target.interval
