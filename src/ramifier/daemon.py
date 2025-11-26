@@ -49,7 +49,6 @@ def daemon(target: Target, stop_event: Event):
         backup_target(target)
 
     restore_target(target, False)
-    backup_target(target)
     mark_clean_exit(target)
 
 

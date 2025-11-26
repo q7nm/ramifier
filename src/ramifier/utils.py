@@ -1,3 +1,4 @@
+import hashlib
 from datetime import datetime
 from pathlib import Path
 
@@ -28,6 +29,13 @@ def get_ram_dir() -> Path:
         ram_dir = tmp / "ramifier"
     ensure_dir(ram_dir, 0o700)
     return ram_dir
+
+
+def hash_file_list(path: Path) -> str:
+    sha256_hasher = hashlib.sha256()
+    for item in sorted(path.rglob("*")):
+        sha256_hasher.update(str(item.relative_to(path)).encode())
+    return sha256_hasher.hexdigest()
 
 
 def ensure_dir(path: Path, mode: int = None):

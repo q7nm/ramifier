@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .log import log_info, log_warning
 from .target import Target
-from .utils import ensure_dir, get_ram_dir, is_tmpfs
+from .utils import ensure_dir, is_tmpfs
 
 
 def create_symlink(target: Target, ram_dir: Path):

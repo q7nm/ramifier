@@ -3,20 +3,27 @@ import tarfile
 from pathlib import Path
 
 import zstandard as zstd
-from xdg import BaseDirectory
 
 from .log import log_info
 from .runtime import get_ram_dir
-from .state import get_last_backup, get_mtime_history, mark_backup, mark_mtime
+from .state import (
+    get_last_backup,
+    get_last_hash,
+    get_mtime_history,
+    mark_backup,
+    mark_hash,
+    mark_mtime,
+)
 from .target import Target
-from .utils import current_timestamp, ensure_dir
+from .utils import current_timestamp, ensure_dir, hash_file_list
 
 
 def backup_target(target: Target, force: bool = False):
     current_mtime = max(
         (p.stat().st_mtime for p in target.path.rglob("*") if p.is_file()), default=0.0
     )
-    if not force and not _has_changes(target, current_mtime):
+    current_hash = hash_file_list(target.path)
+    if not force and not _has_changes(target, current_mtime, current_hash):
         log_info("Nothing to backup", target.name)
         mark_mtime(target, current_mtime)
         return
@@ -24,6 +31,7 @@ def backup_target(target: Target, force: bool = False):
     _compress_target(target, backup_file)
     mark_backup(target, backup_file)
     mark_mtime(target, current_mtime)
+    mark_hash(target, current_hash)
     _cleanup_old_backups(target)
 
 
@@ -51,9 +59,10 @@ def restore_target(target: Target, from_backup: bool = False):
         log_info("Restored from RAM", target.name)
 
 
-def _has_changes(target: Target, current_mtime: float) -> bool:
+def _has_changes(target: Target, current_mtime: float, current_hash: str) -> bool:
     last_mtime = (get_mtime_history(target) or [0.0])[-1]
-    return current_mtime > last_mtime
+    last_hash = get_last_hash(target)
+    return current_mtime > last_mtime or current_hash != last_hash
 
 
 def _compress_target(target: Target, backup_file: Path):
