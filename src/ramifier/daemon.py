@@ -4,7 +4,7 @@ from threading import Event, Thread
 from .backup import backup_target, restore_target
 from .dynamic_interval import dynamic_interval
 from .log import log_info, log_warning
-from .runtime import create_symlink, get_ram_dir
+from .runtime import create_symlink
 from .state import (
     get_last_backup,
     get_running,
@@ -13,6 +13,7 @@ from .state import (
     mark_start,
 )
 from .target import Target
+from .utils import get_ram_dir
 
 
 def daemon(target: Target, stop_event: Event):

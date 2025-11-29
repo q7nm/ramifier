@@ -5,7 +5,6 @@ from pathlib import Path
 import zstandard as zstd
 
 from .log import log_info
-from .runtime import get_ram_dir
 from .state import (
     get_last_backup,
     get_last_hash,
@@ -15,7 +14,7 @@ from .state import (
     mark_mtime,
 )
 from .target import Target
-from .utils import current_timestamp, ensure_dir, hash_file_list
+from .utils import current_timestamp, ensure_dir, get_ram_dir, hash_file_list
 
 
 def backup_target(target: Target, force: bool = False):
