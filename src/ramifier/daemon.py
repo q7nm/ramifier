@@ -4,7 +4,7 @@ from threading import Event, Thread
 from .backup import backup_target, restore_target
 from .dynamic_interval import dynamic_interval
 from .log import log_info, log_warning
-from .runtime import create_symlink
+from .runtime import create_symlink, remove_symlink
 from .state import (
     get_last_backup,
     get_running,
@@ -13,7 +13,6 @@ from .state import (
     mark_start,
 )
 from .target import Target
-from .utils import get_ram_dir
 
 
 def daemon(target: Target, stop_event: Event):
@@ -23,33 +22,40 @@ def daemon(target: Target, stop_event: Event):
     last_backup = get_last_backup(target)
     if running and last_backup is not None:
         try:
-            restore_target(target, True)
+            restore_target(target)
         except FileNotFoundError:
             log_warning("Backup file not found", target.name)
             return
     else:
         backup_target(target, True)
 
-    ram_dir = get_ram_dir()
-    create_symlink(target, ram_dir)
+    create_symlink(target)
 
     mark_running(target)
 
     while not stop_event.is_set():
-        if target.dynamic_interval:
-            interval = dynamic_interval(target)
-        else:
-            interval = target.interval
+        interval = (
+            dynamic_interval(target) if target.dynamic_interval else target.interval
+        )
+
         final_interval = max(5, int(interval))
         if final_interval != interval:
             log_warning(
                 f"Interval forced to {final_interval} minutes (was {interval})",
                 target.name,
             )
+
         stop_event.wait(final_interval * 60)
         backup_target(target)
 
-    restore_target(target, False)
+    try:
+        remove_symlink(target)
+    except FileNotFoundError:
+        log_warning(
+            f"{target.ram_path} does not exist, nothing to restore",
+            target.name,
+        )
+
     mark_clean_exit(target)
 
 

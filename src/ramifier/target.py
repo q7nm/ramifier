@@ -3,7 +3,8 @@ from pathlib import Path
 
 from xdg import BaseDirectory
 
-from .utils import ensure_dir, get_ram_dir
+from .log import log_warning
+from .utils import ensure_dir
 
 
 class Target:
@@ -18,6 +19,7 @@ class Target:
         max_dynamic_interval: int,
         compression_level: int,
         compression_threads: int,
+        ram_path: Path,
     ):
         self.name = name
         self.path = Path(os.path.expandvars(path)).expanduser()
@@ -32,11 +34,13 @@ class Target:
         self.compression_level = compression_level
         self.compression_threads = compression_threads
 
-        if not self.path.exists():
-            raise FileNotFoundError(f"Target path does not exist: {self.path}")
-        if (
-            not self.path.is_dir()
-            and not self.path.resolve() == get_ram_dir() / self.name
-        ):
+        self.ram_path = ram_path
+
+        if self.path.is_symlink() and self.path.resolve() == self.ram_path:
+            self.path.unlink()
+            log_warning(f"Target path will be repaired: {self.path}", self.name)
+        elif not self.path.is_dir():
             raise NotADirectoryError(f"{self.path} is not a directory")
+
+        ensure_dir(self.path)
         ensure_dir(self.backup_path)

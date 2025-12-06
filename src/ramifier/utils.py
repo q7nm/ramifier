@@ -27,6 +27,7 @@ def get_ram_dir() -> Path:
         ram_dir = shm / "ramifier"
     else:
         ram_dir = tmp / "ramifier"
+
     ensure_dir(ram_dir, 0o700)
     return ram_dir
 

@@ -20,7 +20,6 @@ def acquire_lock():
         except ProcessLookupError:
             pass
     LOCK_FILE.write_text(str(os.getpid()))
-    log_info("Lock acquired")
 
 
 def release_lock():
