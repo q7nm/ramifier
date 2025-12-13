@@ -1,5 +1,14 @@
+global_settings:
+  interval:
+    mode: smart
+    max: 100
+    min: 20
 targets:
   - name: test
     path: $HOME/test
     backup_path: $HOME/backups/test
-    interval: 15
+    interval:
+      mode: static
+      value: 15
+  - name: test2
+    path: $HOME/test2
