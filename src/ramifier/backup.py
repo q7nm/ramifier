@@ -4,7 +4,6 @@ from pathlib import Path
 
 import zstandard as zstd
 
-from .global_settings import GlobalSettings
 from .log import log_info, log_warning
 from .state import (
     get_last_backup,

@@ -16,13 +16,11 @@ def load_global_settings() -> GlobalSettings:
     with CONFIG_FILE.open("r") as f_in:
         config_data = yaml.safe_load(f_in)
 
-    s = config_data.get("global_settings", [])
+    s = config_data.get("global_settings", {})
     global_settings = GlobalSettings(
         ram_dir=s.get("ram_dir"),
         max_backups=s.get("max_backups", 3),
-        interval=s.get("interval", 30),
-        dynamic_interval=s.get("dynamic_interval", False),
-        max_dynamic_interval=s.get("max_dynamic_interval", 100),
+        interval=s.get("interval", {}),
         compression_level=s.get("compression_level", 3),
         compression_threads=s.get("compression_threads", 0),
     )
@@ -41,12 +39,6 @@ def load_targets(global_settings: GlobalSettings) -> list[Target]:
             backup_path=t.get("backup_path"),
             max_backups=t.get("max_backups", global_settings.max_backups),
             interval=t.get("interval", global_settings.interval),
-            dynamic_interval=t.get(
-                "dynamic_interval", global_settings.dynamic_interval
-            ),
-            max_dynamic_interval=t.get(
-                "max_dynamic_interval", global_settings.max_dynamic_interval
-            ),
             compression_level=t.get(
                 "compression_level", global_settings.compression_level
             ),

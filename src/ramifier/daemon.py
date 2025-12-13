@@ -1,8 +1,7 @@
-import signal
 from threading import Event, Thread
 
 from .backup import backup_target, restore_target
-from .dynamic_interval import dynamic_interval
+from .interval import Interval
 from .log import log_info, log_warning
 from .runtime import create_symlink, remove_symlink
 from .state import (
@@ -33,19 +32,10 @@ def daemon(target: Target, stop_event: Event):
 
     mark_running(target)
 
+    target_interval = Interval(target)
     while not stop_event.is_set():
-        interval = (
-            dynamic_interval(target) if target.dynamic_interval else target.interval
-        )
-
-        final_interval = max(5, int(interval))
-        if final_interval != interval:
-            log_warning(
-                f"Interval forced to {final_interval} minutes (was {interval})",
-                target.name,
-            )
-
-        stop_event.wait(final_interval * 60)
+        interval = target_interval.get_interval()
+        stop_event.wait(interval * 60)
         backup_target(target)
 
     try:

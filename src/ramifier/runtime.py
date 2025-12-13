@@ -2,10 +2,8 @@ import os
 import shutil
 from pathlib import Path
 
-from .global_settings import GlobalSettings
 from .log import log_info, log_warning
 from .target import Target
-from .utils import ensure_dir, is_tmpfs
 
 
 def create_symlink(target: Target):

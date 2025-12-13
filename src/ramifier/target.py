@@ -14,9 +14,7 @@ class Target:
         path: str,
         backup_path: str,
         max_backups: int,
-        interval: int,
-        dynamic_interval: bool,
-        max_dynamic_interval: int,
+        interval: dict,
         compression_level: int,
         compression_threads: int,
         ram_path: Path,
@@ -27,10 +25,8 @@ class Target:
             self.backup_path = Path(BaseDirectory.xdg_data_home) / "ramifier" / name
         else:
             self.backup_path = Path(os.path.expandvars(backup_path)).expanduser()
-        self.max_backups = max_backups
         self.interval = interval
-        self.dynamic_interval = dynamic_interval
-        self.max_dynamic_interval = max_dynamic_interval
+        self.max_backups = max_backups
         self.compression_level = compression_level
         self.compression_threads = compression_threads
 

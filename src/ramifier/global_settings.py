@@ -8,17 +8,13 @@ class GlobalSettings:
     def __init__(
         self,
         max_backups: int,
-        interval: int,
-        dynamic_interval: bool,
-        max_dynamic_interval: int,
+        interval: dict,
         compression_level: int,
         compression_threads: int,
         ram_dir: str,
     ):
         self.max_backups = max_backups
         self.interval = interval
-        self.dynamic_interval = dynamic_interval
-        self.max_dynamic_interval = max_dynamic_interval
         self.compression_level = compression_level
         self.compression_threads = compression_threads
         if ram_dir is None:
