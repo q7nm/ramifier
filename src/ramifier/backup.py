@@ -14,19 +14,16 @@ from .state import (
     mark_mtime,
 )
 from .target import Target
-from .utils import current_timestamp, ensure_dir, hash_file_list
+from .utils import current_timestamp, ensure_dir, get_latest_mtime, hash_file_list
 
 
 def backup_target(target: Target, force: bool = False):
-    current_mtime = max(
-        (p.stat().st_mtime for p in target.path.rglob("*") if p.is_file()), default=0.0
-    )
+    current_mtime = get_latest_mtime(target.path)
     current_hash = hash_file_list(target.path)
 
     if not force and not _has_changes(target, current_mtime, current_hash):
         log_info("Nothing to backup", target.name)
-        if not force:
-            mark_mtime(target, current_mtime)
+        mark_mtime(target, current_mtime)
         return
 
     backup_file = target.backup_path / f"{target.name}-{current_timestamp()}.tar.zst"
