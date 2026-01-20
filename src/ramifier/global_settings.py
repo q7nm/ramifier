@@ -20,6 +20,6 @@ class GlobalSettings:
         if ram_dir is None:
             self.ram_dir = get_ram_dir()
         else:
-            ram_dir = Path(os.path.expandvars(ram_dir)).expanduser()
+            ram_dir = Path(os.path.expandvars(ram_dir)).expanduser() / "ramifier"
             ensure_dir(ram_dir, 0o700)
             self.ram_dir = ram_dir

@@ -33,8 +33,9 @@ def load_targets(global_settings: GlobalSettings) -> list[Target]:
 
     targets = []
     for t in config_data.get("targets", []):
+        name = t.get("name")
         target = Target(
-            name=t.get("name"),
+            name=name,
             path=t.get("path"),
             backup_path=t.get("backup_path"),
             max_backups=t.get("max_backups", global_settings.max_backups),
@@ -45,8 +46,11 @@ def load_targets(global_settings: GlobalSettings) -> list[Target]:
             compression_threads=t.get(
                 "compression_threads", global_settings.compression_threads
             ),
-            ram_path=global_settings.ram_dir / t.get("name"),
+            ram_path=global_settings.ram_dir / name,
         )
+        if name in [t.name for t in targets]:
+            raise RuntimeError(f"Target with name {name} already exists")
+
         targets.append(target)
         log_info("Target added", target.name)
     return targets

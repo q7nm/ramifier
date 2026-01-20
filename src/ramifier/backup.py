@@ -37,10 +37,9 @@ def backup_target(target: Target, force: bool = False):
 def restore_target(target: Target):
     backup_file = Path(get_last_backup(target))
     if not backup_file.exists():
-        raise FileNotFoundError(f"No backup found for target {target.name}")
+        raise FileNotFoundError(f"Backup file not found")
 
     _decompress_target(target, backup_file)
-    log_info("Restored from backup", target.name)
 
 
 def _has_changes(target: Target, current_mtime: float, current_hash: str) -> bool:

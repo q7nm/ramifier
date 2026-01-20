@@ -1,21 +1,29 @@
 import signal
+import sys
 from threading import Event
 
 from . import __version__
 from .config import load_global_settings, load_targets
 from .daemon import start_daemon
 from .lock import acquire_lock, release_lock
-from .log import log_info
+from .log import log_error, log_info
 from .state import load_state
 
 
 def main():
     log_info(f"Version: {__version__}")
 
-    acquire_lock()
-    global_settings = load_global_settings()
-    targets = load_targets(global_settings)
-    load_state()
+    try:
+        acquire_lock()
+
+        global_settings = load_global_settings()
+        targets = load_targets(global_settings)
+
+        load_state()
+
+    except Exception as e:
+        log_error(f"Ramifier terminated due to error: {e}")
+        sys.exit(1)
 
     stop_event = Event()
 
