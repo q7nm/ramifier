@@ -1,5 +1,7 @@
 from threading import Event, Thread
 
+import zstandard as zstd
+
 from .backup import backup_target, restore_target
 from .interval import Interval
 from .log import log_error, log_info, log_warning
@@ -60,5 +62,5 @@ def _safe_backup_target(target: Target, force: bool = False):
         backup_target(target, force)
     except (OSError, PermissionError, FileNotFoundError) as e:
         raise RuntimeError("Filesystem error during backup") from e
-    except zstandard.ZstdError as e:
+    except zstd.ZstdError as e:
         raise RuntimeError("Compression error during backup") from e
