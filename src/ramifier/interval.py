@@ -3,25 +3,25 @@ from threading import Thread
 from time import sleep
 
 from .log import log_info, log_warning
-from .state import get_mtime_history, set_mtime_history_len
+from .state import get_hash_history, set_hash_history_len
 from .target import Target
-from .utils import get_latest_mtime
+from .utils import get_tree_state_hash
 
 
 class Interval:
     default_interval = 30
     default_min_interval = 5
     default_max_interval = 100
-    default_mtime_history_len = 5
+    default_hash_history_len = 5
 
     def __init__(self, target: Target):
         self.target = target
         self.interval_dict = target.interval
 
-        mtime_history_len = max(
-            self.interval_dict.get("history_len", Interval.default_mtime_history_len), 1
+        hash_history_len = max(
+            self.interval_dict.get("history_len", Interval.default_hash_history_len), 1
         )
-        set_mtime_history_len(self.target, mtime_history_len)
+        set_hash_history_len(self.target, hash_history_len)
 
         self._smart_interval_thread = None
 
@@ -47,8 +47,8 @@ class Interval:
             raise ValueError(f"Unknown interval mode: {mode}")
 
     def _dynamic_interval(self, max_interval: int, min_interval: int) -> int:
-        mtime_history = get_mtime_history(self.target)
-        unique_count = len(set(mtime_history))
+        hash_history = get_hash_history(self.target)
+        unique_count = len(set(hash_history))
         dynamic_interval = (
             max_interval // unique_count if unique_count else min_interval
         )
@@ -75,14 +75,14 @@ class Interval:
         just_started = True
 
         check_interval = max(min_interval // 2, (max_interval - min_interval) // 6, 1)
-        current_mtime = get_latest_mtime(self.target.path)
+        current_hash = get_tree_state_hash(self.target.path)
 
         intensity = 1
         while True:
-            new_mtime = get_latest_mtime(self.target.path)
+            new_hash = get_tree_state_hash(self.target.path)
 
-            has_changes = new_mtime != current_mtime
-            current_mtime = new_mtime
+            has_changes = new_hash != current_hash
+            current_hash = new_hash
 
             if has_changes:
                 intensity += 1

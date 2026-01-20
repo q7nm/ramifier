@@ -32,14 +32,20 @@ def get_ram_dir() -> Path:
     return ram_dir
 
 
-def get_latest_mtime(path: Path) -> float:
-    return max((p.stat().st_mtime for p in path.rglob("*") if p.is_file()), default=0.0)
-
-
-def hash_file_list(path: Path) -> str:
+def get_tree_state_hash(path: Path) -> str:
     sha256_hasher = hashlib.sha256()
     for item in sorted(path.rglob("*")):
+        if not item.is_file():
+            continue
+
+        try:
+            stat = item.stat()
+        except (FileNotFoundError, PermissionError):
+            continue
+
         sha256_hasher.update(str(item.relative_to(path)).encode())
+        sha256_hasher.update(str(int(stat.st_mtime)).encode())
+
     return sha256_hasher.hexdigest()
 
 

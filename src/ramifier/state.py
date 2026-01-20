@@ -33,8 +33,7 @@ def mark_start(target: Target):
         target.name,
         {
             "last_backup": None,
-            "last_hash": None,
-            "mtime_history": deque(),
+            "hash_history": deque(),
             "running": True,
         },
     )
@@ -52,14 +51,9 @@ def mark_backup(target: Target, backup_file: Path):
 
 
 def mark_hash(target: Target, hash: str):
-    STATE["targets"].setdefault(target.name, {})["last_hash"] = hash
-    _save_state()
-
-
-def mark_mtime(target: Target, mtime: float):
     STATE["targets"].setdefault(target.name, {}).setdefault(
-        "mtime_history", deque()
-    ).append(mtime)
+        "hash_history", deque()
+    ).append(hash)
     _save_state()
 
 
@@ -69,9 +63,11 @@ def mark_clean_exit(target: Target):
     _save_state()
 
 
-def set_mtime_history_len(target: Target, mtime_history_len: int):
-    mtime_history = get_mtime_history(target)
-    STATE["targets"][target.name]["mtime_history"] = deque(mtime_history, mtime_history_len)
+def set_hash_history_len(target: Target, hash_history_len: int):
+    hash_history = get_hash_history(target)
+    STATE["targets"][target.name]["hash_history"] = deque(
+        hash_history, hash_history_len
+    )
     _save_state()
 
 
@@ -79,12 +75,8 @@ def get_last_backup(target: Target) -> str:
     return STATE["targets"].get(target.name, {}).get("last_backup")
 
 
-def get_last_hash(target: Target) -> str:
-    return STATE["targets"].get(target.name, {}).get("last_hash")
-
-
-def get_mtime_history(target: Target) -> deque[float]:
-    return STATE["targets"].get(target.name, {}).get("mtime_history", deque())
+def get_hash_history(target: Target) -> deque[str]:
+    return STATE["targets"].get(target.name, {}).get("hash_history", deque())
 
 
 def get_running(target: Target) -> bool:
