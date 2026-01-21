@@ -14,10 +14,12 @@
 - Move directories to RAM (`/dev/shm` or `/tmp`) for faster operations.
 - Automatic backup with Zstandard compression.
 - Tracks file changes for automatic backups.
-- Restore from backup or RAM seamlessly.
-- Configurable dynamic backup intervals.
+- Restore from backup or RAM seamlessly, with hash verification to prevent corruption.
+- Old backups are cleaned up safely, with logging for failures.
+- Configurable backup intervals (static, dynamic, smart modes).
 - Safe daemon operation with lock file support.
 - Supports multiple targets with individual settings.
+
 
 ## Dependencies
 
