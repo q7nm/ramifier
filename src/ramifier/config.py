@@ -11,12 +11,12 @@ CONFIG_FILE = Path(BaseDirectory.xdg_config_home) / "ramifier" / "config.yaml"
 if not CONFIG_FILE.exists():
     raise FileNotFoundError(f"Config file not found: {CONFIG_FILE}")
 
+with CONFIG_FILE.open("r") as f_in:
+    CONFIG_DATA = yaml.safe_load(f_in)
+
 
 def load_global_settings() -> GlobalSettings:
-    with CONFIG_FILE.open("r") as f_in:
-        config_data = yaml.safe_load(f_in)
-
-    s = config_data.get("global_settings", {})
+    s = CONFIG_DATA.get("global_settings", {})
     global_settings = GlobalSettings(
         ram_dir=s.get("ram_dir"),
         max_backups=s.get("max_backups", 3),
@@ -28,11 +28,8 @@ def load_global_settings() -> GlobalSettings:
 
 
 def load_targets(global_settings: GlobalSettings) -> list[Target]:
-    with CONFIG_FILE.open("r") as f_in:
-        config_data = yaml.safe_load(f_in)
-
     targets = []
-    for t in config_data.get("targets", []):
+    for t in CONFIG_DATA.get("targets", []):
         name = t.get("name")
         target = Target(
             name=name,
