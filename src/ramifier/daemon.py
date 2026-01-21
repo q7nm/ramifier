@@ -6,24 +6,20 @@ from .backup import backup_target, restore_target
 from .interval import Interval
 from .log import log_error, log_info, log_warning
 from .runtime import create_symlink, remove_symlink
-from .state import (
-    get_last_backup,
-    get_running,
-    mark_clean_exit,
-    mark_running,
-    mark_start,
-)
+from .state import get_running, mark_clean_exit, mark_running, mark_start
 from .target import Target
 
 
 def daemon(target: Target, stop_event: Event):
     try:
+        running = get_running(target)
         mark_start(target)
 
-        running = get_running(target)
-        last_backup = get_last_backup(target)
-        if running and last_backup is not None:
-            restore_target(target)
+        if running:
+            try:
+                restore_target(target)
+            except FileNotFoundError:
+                _safe_backup_target(target, True)
         else:
             _safe_backup_target(target, True)
 

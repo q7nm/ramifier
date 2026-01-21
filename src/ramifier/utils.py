@@ -32,6 +32,15 @@ def get_ram_dir() -> Path:
     return ram_dir
 
 
+def get_file_hash(path: Path) -> str:
+    sha256_hasher = hashlib.sha256()
+    with path.open("rb") as f_in:
+        for chunk in iter(lambda: f_in.read(8192), b""):
+            sha256_hasher.update(chunk)
+
+    return sha256_hasher.hexdigest()
+
+
 def get_tree_state_hash(path: Path) -> str:
     sha256_hasher = hashlib.sha256()
     for item in sorted(path.rglob("*")):

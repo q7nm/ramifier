@@ -32,7 +32,7 @@ def mark_start(target: Target):
     STATE["targets"].setdefault(
         target.name,
         {
-            "last_backup": None,
+            "backups": [],
             "hash_history": deque(),
             "running": True,
         },
@@ -45,8 +45,10 @@ def mark_running(target: Target):
     _save_state()
 
 
-def mark_backup(target: Target, backup_file: Path):
-    STATE["targets"].setdefault(target.name, {})["last_backup"] = str(backup_file)
+def mark_backup(target: Target, backup_file: Path, backup_hash: str):
+    STATE["targets"].setdefault(target.name, {}).setdefault("backups", []).append(
+        {"file": str(backup_file), "hash": backup_hash}
+    )
     _save_state()
 
 
@@ -71,8 +73,13 @@ def set_hash_history_len(target: Target, hash_history_len: int):
     _save_state()
 
 
-def get_last_backup(target: Target) -> str:
-    return STATE["targets"].get(target.name, {}).get("last_backup")
+def remove_backup(target: Target, backup: dict):
+    STATE["targets"][target.name]["backups"].remove(backup)
+    _save_state()
+
+
+def get_backups(target: Target) -> list:
+    return STATE["targets"].get(target.name, {}).get("backups", [])
 
 
 def get_hash_history(target: Target) -> deque[str]:
@@ -80,7 +87,7 @@ def get_hash_history(target: Target) -> deque[str]:
 
 
 def get_running(target: Target) -> bool:
-    return STATE["targets"].get(target.name, {}).get("running")
+    return STATE["targets"].get(target.name, {}).get("running", False)
 
 
 def _save_state():

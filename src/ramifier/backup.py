@@ -1,3 +1,4 @@
+import os
 import shutil
 import tarfile
 from pathlib import Path
@@ -5,9 +6,9 @@ from pathlib import Path
 import zstandard as zstd
 
 from .log import log_info, log_warning
-from .state import get_hash_history, get_last_backup, mark_backup, mark_hash
+from .state import get_backups, get_hash_history, mark_backup, mark_hash, remove_backup
 from .target import Target
-from .utils import current_timestamp, ensure_dir, get_tree_state_hash
+from .utils import current_timestamp, ensure_dir, get_file_hash, get_tree_state_hash
 
 
 def backup_target(target: Target, force: bool = False):
@@ -19,18 +20,33 @@ def backup_target(target: Target, force: bool = False):
         return
 
     backup_file = target.backup_path / f"{target.name}-{current_timestamp()}.tar.zst"
-    _compress_target(target, backup_file)
-    mark_backup(target, backup_file)
+    backup_hash = _compress_target(target, backup_file)
+    mark_backup(target, backup_file, backup_hash)
     mark_hash(target, current_hash)
     _cleanup_old_backups(target)
 
 
 def restore_target(target: Target):
-    backup_file = Path(get_last_backup(target))
-    if not backup_file.exists():
-        raise FileNotFoundError(f"Backup file not found")
+    backups = get_backups(target)
+    for backup in reversed(backups):
+        file = backup.get("file")
+        expected_hash = backup.get("hash")
 
-    _decompress_target(target, backup_file)
+        if not file or not expected_hash:
+            continue
+
+        backup_file = Path(file)
+        if not backup_file.exists():
+            log_warning(f"Backup file not found: {backup_file}", target.name)
+            continue
+
+        if expected_hash == get_file_hash(backup_file):
+            _decompress_target(target, backup_file)
+            return
+        else:
+            log_warning(f"Skipping backup (hash mismatch): {backup_file}", target.name)
+
+    raise FileNotFoundError(f"No valid backup found")
 
 
 def _has_changes(target: Target, current_hash: str) -> bool:
@@ -38,16 +54,25 @@ def _has_changes(target: Target, current_hash: str) -> bool:
     return current_hash != last_hash
 
 
-def _compress_target(target: Target, backup_file: Path):
+def _compress_target(target: Target, backup_file: Path) -> str:
     cctx = zstd.ZstdCompressor(
         level=target.compression_level, threads=target.compression_threads
     )
 
-    with open(backup_file, "wb") as f_out:
-        with cctx.stream_writer(f_out) as compressor:
-            with tarfile.open(fileobj=compressor, mode="w|") as tar:
-                tar.add(target.path.resolve(), arcname=".")
-    log_info(f"Backed up at {backup_file}", target.name)
+    backup_temp_file = backup_file.with_suffix(backup_file.suffix + ".tmp")
+    try:
+        with open(backup_temp_file, "wb") as f_out:
+            with cctx.stream_writer(f_out) as compressor:
+                with tarfile.open(fileobj=compressor, mode="w|") as tar:
+                    tar.add(target.path.resolve(), arcname=".")
+
+        backup_hash = get_file_hash(backup_temp_file)
+        os.replace(backup_temp_file, backup_file)
+        log_info(f"Backed up at {backup_file}", target.name)
+        return backup_hash
+
+    finally:
+        backup_temp_file.unlink(missing_ok=True)
 
 
 def _decompress_target(target: Target, backup_file: Path):
@@ -65,16 +90,24 @@ def _decompress_target(target: Target, backup_file: Path):
 
 
 def _cleanup_old_backups(target: Target):
-    backups = sorted(
-        target.backup_path.glob(f"{target.name}-*.tar.zst"),
-        key=lambda p: p.stat().st_mtime,
-    )
-    last_backup_file = get_last_backup(target)
+    backups = get_backups(target)
+    if not backups or len(backups) <= target.max_backups:
+        return
 
-    for backup in backups[: -target.max_backups]:
+    old_backups = backups[: -target.max_backups]
+    for backup in old_backups:
+        file = backup.get("file")
+        if not file:
+            continue
+
+        backup_file = Path(file)
         try:
-            if last_backup_file is None or backup != Path(last_backup_file):
-                backup.unlink(missing_ok=True)
-                log_info(f"Deleted old backup: {backup}", target.name)
+            if backup_file.exists():
+                backup_file.unlink()
+                log_info(f"Deleted old backup: {backup_file}", target.name)
+
         except Exception:
-            log_warning(f"Failed to delete {backup}", target.name)
+            log_warning(f"Failed to delete {backup_file}", target.name)
+
+        finally:
+            remove_backup(target, backup)
