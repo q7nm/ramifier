@@ -6,7 +6,7 @@ from psutil import disk_partitions
 
 
 def current_timestamp() -> str:
-    return datetime.now().strftime("%Y-%m-%d_%H-%M")
+    return datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 
 def is_tmpfs(path: Path) -> bool:
